@@ -1,5 +1,9 @@
 import subprocess
+from ast import literal_eval
 from math import floor, ceil
+
+def futtat(parancs):
+    return subprocess.run(parancs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
     parancs = ["/CREATE"]
@@ -24,10 +28,10 @@ def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
         parancs += ["/ST", ido]
 
     # Feladat
-    feladat = "python C:\\\\Users\\kgerg\\Documents\\GitHub\\Idozito\\" + feladat + ".py"
+    feladat = "cmd /c python C:\\\\Users\\kgerg\\Documents\\GitHub\\Idozito\\" + feladat + ".py"
     parancs += ["/TR", feladat]
 
-    eredmeny = subprocess.run(["schtasks"]+parancs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    eredmeny = futtat(["schtasks"]+parancs)
     try:
         eredmeny = eredmeny.stdout
         eredmeny = eredmeny.decode("unicode_escape", errors="replace")
@@ -36,3 +40,14 @@ def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
             return 0
         else:
             return eredmeny
+
+def listaz():
+    parancs = "SCHTASKS /QUERY /NH /FO CSV".split()
+    eredmeny = futtat(parancs)
+    eredmeny = eredmeny.stdout.decode("unicode_escape", errors="replace")[:-2]
+    eredmeny = "[[" + eredmeny.replace("\r\n", "], [").replace('"', '\"') + "]]"
+    eredmeny = literal_eval(eredmeny)
+    eredmeny = list(filter(lambda x: x[0][:6] == "\\kgerg", eredmeny))
+    return eredmeny
+
+
