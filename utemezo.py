@@ -44,10 +44,21 @@ def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
 def listaz():
     parancs = "SCHTASKS /QUERY /NH /FO CSV".split()
     eredmeny = futtat(parancs)
-    eredmeny = eredmeny.stdout.decode("unicode_escape", errors="replace")[:-2]
-    eredmeny = "[[" + eredmeny.replace("\r\n", "], [").replace('"', '\"') + "]]"
+    eredmeny = r"{}".format(eredmeny.stdout[:-2])[2:-1]
+    eredmeny = "[[" + eredmeny.replace("\\r\\n", "], [") + "]]"
     eredmeny = literal_eval(eredmeny)
     eredmeny = list(filter(lambda x: x[0][:6] == "\\kgerg", eredmeny))
     return eredmeny
 
-
+def torol(nev):
+    parancs = "SCHTASKS /DELETE /F /TN kgerg\\" + nev
+    parancs = parancs.split()
+    eredmeny = futtat(parancs)
+    try:
+        eredmeny = eredmeny.stdout
+        eredmeny = eredmeny.decode("unicode_escape", errors="replace")
+    finally:
+        if eredmeny[:7] == "SUCCESS":
+            return 0
+        else:
+            return eredmeny
