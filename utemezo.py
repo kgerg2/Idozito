@@ -6,6 +6,15 @@ def futtat(parancs):
     return subprocess.run(parancs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
+    """
+    Új feladat létrehozása.
+    nev: feladat neve,
+    feladat: a futtatandó program neve,
+    ido: a futtatás időpontja (óra:perc),
+    kezdes: a kezdőesemény,
+    kesleltetes: a kezdőesemény és a feladat elindítása között eltelt idő (perc)
+    """
+
     parancs = ["/CREATE"]
 
     # Név
@@ -42,6 +51,10 @@ def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
             return eredmeny
 
 def listaz():
+    """
+    Aktuálisan ütemezett feladatok listázása.
+    """
+
     parancs = "SCHTASKS /QUERY /NH /FO CSV".split()
     eredmeny = futtat(parancs)
     eredmeny = r"{}".format(eredmeny.stdout[:-2])[2:-1]
@@ -51,6 +64,10 @@ def listaz():
     return eredmeny
 
 def torol(nev):
+    """
+    Adott nevű ütemezett feladat törlése.
+    """
+
     parancs = "SCHTASKS /DELETE /F /TN kgerg\\" + nev
     parancs = parancs.split()
     eredmeny = futtat(parancs)
