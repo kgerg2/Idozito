@@ -1,4 +1,5 @@
 import time
+import subprocess
 from win10toast import ToastNotifier
 
 toaster = ToastNotifier()
@@ -10,7 +11,6 @@ ikon = "C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\clock-icon.ico"
 hossz = 5
 
 def keszenlet():
-    import subprocess
     subprocess.run("C:\\Users\\kgerg\\Documents\\Programok\\nircmd.exe standby")
     exit()
 

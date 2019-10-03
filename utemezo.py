@@ -50,6 +50,11 @@ def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
         else:
             return eredmeny
 
+def idove_alakit(szoveg):
+    if ":" not in szoveg:
+        return None
+    return tuple(map(int, szoveg.split(":")))
+
 def listaz():
     """
     Aktuálisan ütemezett feladatok listázása.
@@ -60,7 +65,8 @@ def listaz():
     eredmeny = r"{}".format(eredmeny.stdout[:-2])[2:-1]
     eredmeny = "[[" + eredmeny.replace("\\r\\n", "], [") + "]]"
     eredmeny = literal_eval(eredmeny)
-    eredmeny = list(filter(lambda x: x[0][:6] == "\\kgerg", eredmeny))
+    eredmeny = filter(lambda x: x[0][:6] == "\\kgerg", eredmeny)
+    eredmeny = [(es[0][7:], idove_alakit(es[1])) for es in eredmeny]
     return eredmeny
 
 def torol(nev):
