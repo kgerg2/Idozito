@@ -53,11 +53,13 @@ def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
 def idove_alakit(szoveg):
     if ":" not in szoveg:
         return None
-    return tuple(map(int, szoveg.split(":")))
+    return tuple(map(int, szoveg.split(" ")[-1].split(":")))
 
 def listaz():
     """
     Aktuálisan ütemezett feladatok listázása.
+    Név, időpont párosokból álló listát ad vissza.
+    Az időpont None, ha nem ismert.
     """
 
     parancs = "SCHTASKS /QUERY /NH /FO CSV".split()
