@@ -1,8 +1,5 @@
 import time
 import subprocess
-from win10toast import ToastNotifier
-
-toaster = ToastNotifier()
 
 cim = "Figyelmezteto"
 uzenet = """A számítógépet már 50 perce használod folyamatosan.
@@ -10,11 +7,24 @@ Kattints ide, hogy alvó állapotba rakd!"""
 ikon = "C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\clock-icon.ico"
 hossz = 5
 
-def keszenlet():
-    subprocess.run("C:\\Users\\kgerg\\Documents\\Programok\\nircmd.exe standby")
-    exit()
+szkript = f"""[void][System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+$balloon = New-Object System.Windows.Forms.NotifyIcon -Property @{{
+    Icon = "{ikon}"
+    BalloonTipTitle = "{cim}"
+    BalloonTipText = "{uzenet}"
+    Visible = $True
+}}
+$balloon.ShowBalloonTip(1)
+Register-ObjectEvent $balloon BalloonTipClicked -SourceIdentifier event_BalloonTipClicked
+Register-ObjectEvent $balloon BalloonTipClosed -SourceIdentifier event_BalloonTipClosed
+$retEvent = Wait-Event event_BalloonTip* -TimeOut {hossz}
+$retSourceIdentifier = $retEvent.SourceIdentifier
+If ($retSourceIdentifier -eq "event_BalloonTipClicked"){{ echo klikk }}
+$balloon.Dispose()
+"""
 
 while True:
-    toaster.show_toast(cim, uzenet, icon_path=ikon, duration=5,
-                       threaded=False, callback_on_click=keszenlet)
-    time.sleep(5*60)
+    if subprocess.run(["powershell", szkript], stdout=subprocess.PIPE).stdout.decode("utf-8").strip() == "klikk":
+        subprocess.run("C:\\Users\\kgerg\\Documents\\Programok\\nircmd.exe standby")
+        break
+    time.sleep(5)

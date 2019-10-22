@@ -10,6 +10,6 @@ ido = tuple(time.localtime(time.time() + 50*60))[3:5] # 50 perc múlva
 print(letrehoz("figyelmezteto", "figyelmezteto", "{}:{}".format(*ido)))
 
 
-if "szunet" in utemezett:
-    torol("szunet")
-print(letrehoz("szunet", "szunet", kezdes="ONIDLE", kesleltetes=10))
+# if "szunet" in utemezett:
+#     torol("szunet")
+# print(letrehoz("szunet", "szunet", kezdes="ONIDLE", kesleltetes=10))

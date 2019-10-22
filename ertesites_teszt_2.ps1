@@ -1,17 +1,15 @@
-import subprocess
-
-szkript = f"""[void][System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+[void][System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 
 $Title = "Cím"
 $Text = "Szöveg"
 $EventTimeOut = 5
 
-$balloon = New-Object System.Windows.Forms.NotifyIcon -Property @{{
-    Icon = "C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\clock-icon.ico"
+$balloon = New-Object System.Windows.Forms.NotifyIcon -Property @{
+    Icon = "C:\Users\kgerg\Documents\GitHub\Idozito\clock-icon.ico"
     BalloonTipTitle = $Title
     BalloonTipText = $Text
     Visible = $True
-}}
+}
 
 # Value "1" here is meaningless. $EventTimeOut will force bubble to close.
 $balloon.ShowBalloonTip(1)
@@ -27,15 +25,17 @@ $retEvent = Wait-Event event_BalloonTip* -TimeOut $EventTimeOut
 # Script resumes here.
 $retSourceIdentifier = $retEvent.SourceIdentifier
 
-If ($retSourceIdentifier -eq "event_BalloonTipClicked"){{
-    echo klikk
-}}
+If ($retSourceIdentifier -eq "event_BalloonTipClicked"){
+    explorer.exe
+    echo kész
+}
 
 # Gets rid of icon. This is absolutely necessary, otherwise icon is stuck event if parent script/shell closes
 $balloon.Dispose()
 
-"""
-
-eredm = subprocess.run(["powershell", szkript], stdout=subprocess.PIPE)
-print("kész")
-print(eredm.stdout)
+# Tidy up, This is needed if returning to parent shell.
+Unregister-Event -SourceIdentifier event_BalloonTip*
+Get-Event event_BalloonTip* | Remove-Event
+Write-Host -ForeGround Gray "Should be empty -- start --"
+Get-EventSubscriber
+Write-Host -ForeGround Gray "Should be empty -- end --"

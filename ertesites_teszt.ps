@@ -1,0 +1,11 @@
+[void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+
+$objNotifyIcon = New-Object System.Windows.Forms.NotifyIcon
+
+$objNotifyIcon.Icon = "C:\Scripts\Forms\Folder.ico"
+$objNotifyIcon.BalloonTipIcon = "Error"
+$objNotifyIcon.BalloonTipText = "A file needed to complete the operation could not be found."
+$objNotifyIcon.BalloonTipTitle = "File Not Found"
+
+$objNotifyIcon.Visible = $True
+$objNotifyIcon.ShowBalloonTip(10000)
