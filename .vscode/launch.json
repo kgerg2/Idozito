@@ -5,6 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "PowerShell Launch Script",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${file}",
+            "cwd": "${workspaceFolder}"
+        },
+    {
+        "name": "PowerShell Interactive Session",
+        "type": "PowerShell",
+        "request": "launch",
+        "cwd": ""
+    },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
