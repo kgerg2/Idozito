@@ -30,7 +30,7 @@ def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
         if kesleltetes > 0:
             perc = floor(min(kesleltetes, 9999))
             mp = ceil((kesleltetes-floor(kesleltetes)) * 60)
-            parancs += ["/DELAY", "{}:{}".format(perc, mp)]
+            parancs += ["/DELAY", "{:02}:{:02}".format(perc, mp)]
 
     # Időpont
     if ido:
