@@ -15,7 +15,7 @@ def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
     kesleltetes: a kezdőesemény és a feladat elindítása között eltelt idő (perc)
     """
 
-    parancs = ["/CREATE"]
+    parancs = ["/CREATE", "/F", "/RL", "HIGHEST"]
 
     # Név
     parancs += ["/TN", "kgerg\\" + nev]
@@ -42,7 +42,7 @@ def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
 
     eredmeny = futtat(["schtasks"]+parancs)
     try:
-        eredmeny = eredmeny.stdout
+        eredmeny = eredmeny.stderr + eredmeny.stdout
         eredmeny = eredmeny.decode("unicode_escape", errors="replace")
     finally:
         if eredmeny[:7] == "SUCCESS":
@@ -80,7 +80,7 @@ def torol(nev):
     parancs = parancs.split()
     eredmeny = futtat(parancs)
     try:
-        eredmeny = eredmeny.stdout
+        eredmeny = eredmeny.stderr + eredmeny.stdout
         eredmeny = eredmeny.decode("unicode_escape", errors="replace")
     finally:
         if eredmeny[:7] == "SUCCESS":
