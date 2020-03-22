@@ -11,10 +11,11 @@ uzenet = """A számítógépet már 50 perce használod folyamatosan.
 Kattints ide, hogy alvó állapotba rakd!"""
 ora_ikon = "C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\clock-icon.ico"
 nyil_ikon = "C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\nyíl-ikon.png"
+tev_adatok = "C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\tevekenyseg-adatok.csv"
 hossz = 5
 halaszt_ertekek = ("1 perc", "2 perc", "5 perc", "10 perc", "30 perc", "1 óra", "2 óra")
 nircmd = "C:\\Users\\kgerg\\Documents\\Programok\\nircmd.exe"
-
+bef = False
 
 def keszenlet():
     subprocess.run(f"{nircmd} standby", check=False)
@@ -25,6 +26,18 @@ def kepernyo():
 
 def kikapcs():
     subprocess.run(f"{nircmd} exitwin poweroff", check=False)
+
+def befejez():
+    global bef
+    bef = True
+    ablak.after_cancel(idolimit_id)
+    ablak.destroy()
+
+
+bef_lehetosegek = [("Képernyő kikapcsolása", kepernyo),
+                   ("Készenlét", keszenlet),
+                   ("Kikapcsolás", kikapcs)]
+
 
 def ido_ertelmezo(szoveg):
     szoveg = szoveg.strip()
@@ -72,7 +85,7 @@ def halaszt(*_):
             torol("figyelmezteto")
         ido = tuple(time.localtime(time.time() + ido))[3:5]
         letrehoz("figyelmezteto", "figyelmezteto-tevekenysegfigyelovel", "{:02}:{:02}".format(*ido))
-        exit()
+        befejez()
 
 def figyelmezteto():
     global ablak, halaszt_lista, idolimit_id
@@ -95,8 +108,7 @@ def figyelmezteto():
 
     cimsor.pack(anchor="n", fill="x")
 
-
-    keszenlet_gomb = ttk.Button(ablak, text="Befejezés", command=exit)
+    keszenlet_gomb = ttk.Button(ablak, text="Befejezés", command=befejez)
     keszenlet_gomb.pack(side=tkinter.LEFT, padx=10)
 
     halaszt_lista = ttk.Combobox(ablak, values=tuple(halaszt_ertekek))
@@ -113,14 +125,8 @@ def figyelmezteto():
 
     ablak.mainloop()
 
-while True:
-    try:
-        figyelmezteto()
-    except SystemExit:
-        break
-
-ablak.after_cancel(idolimit_id)
-ablak.destroy()
+while not bef:
+    figyelmezteto()
 
 ###################################################################################################
 ####################################### Tevékenységfigyelő ########################################
@@ -131,7 +137,7 @@ kezd_ido = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() - 3600)
 
 def tev_beolvas():
     global korabbi_tev, kezd_ido
-    with open("tevekenyseg-adatok.csv", encoding="utf-8") as be:
+    with open(tev_adatok, encoding="utf-8") as be:
         l = map(lambda x: tuple(x.split(";")[1:4:2]), be.readlines())
     for kezd_ido, nev in l:
         nev = nev[:-1]
@@ -146,7 +152,7 @@ def tev_rogzit():
                 int(time.mktime(time.strptime(idok[0], "%Y-%m-%d %H:%M:%S")))
     l = [(lambda x: (x[1].get(), x[2].value))(abl.winfo_children()) for abl in tev_lista]
 
-    with open("tevekenyseg-adatok.csv", "a", encoding="utf-8") as ki:
+    with open(tev_adatok, "a", encoding="utf-8") as ki:
         for nev, szazalek in l:
             if nev and szazalek:
                 ki.write(";".join([*idok, str(idotartam*szazalek//100), nev]))
@@ -155,7 +161,6 @@ def tev_rogzit():
     ablak.quit()
 
 tev_beolvas()
-
 ablak = tkinter.Tk("Tevékenységfigyelő")
 
 tev_lista = []
@@ -210,6 +215,7 @@ def uj_tev(*_):
 
     if tev_lista:
         tev_lista[-1].winfo_children()[1].unbind("<FocusIn>")
+        tev_lista[-1].winfo_children()[0].unbind("<ButtonRelease>")
     tev_lista.append(tev_ablak)
     tev_ablak.pack()
 
@@ -235,20 +241,11 @@ uj_tev()
 
 bef_ablak = tkinter.Frame(ablak)
 
-bef_lehetosegek = [("Képernyő kikapcsolása", kepernyo),
-                   ("Készenlét", keszenlet),
-                   ("Kikapcsolás", kikapcs)]
 bef_gombok = []
 
 for i, (felirat, fv) in enumerate(bef_lehetosegek):
     bef_gombok.append(ttk.Button(bef_ablak, text=felirat, command=lambda f=fv: tev_rogzit() or f()))
     bef_gombok[i].grid(row=0, column=i, padx=10)
-
-# kesz_gomb = ttk.Button(bef_ablak, text="Készenlét", command=lambda: tev_rogzit() or keszenlet())
-# kesz_gomb.grid(row=0, column=1, padx=10)
-
-# leall_gomb = ttk.Button(bef_ablak, text="Leállítás", command=lambda: tev_rogzit() or kikapcs())
-# leall_gomb.grid(row=0, column=2, padx=10)
 
 bef_ablak.pack(side=tkinter.BOTTOM, pady=10)
 
