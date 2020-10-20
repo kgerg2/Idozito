@@ -14,7 +14,7 @@ nyil_ikon = "C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\nyíl-ikon.png"
 tev_adatok = "C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\tevekenyseg-adatok.csv"
 hossz = 5
 halaszt_ertekek = ("1 perc", "2 perc", "5 perc", "10 perc", "30 perc", "1 óra", "2 óra")
-nircmd = "C:\\Users\\kgerg\\Documents\\Programok\\nircmd.exe"
+nircmd = "nircmd.exe"
 bef = False
 
 def keszenlet():

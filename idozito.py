@@ -1,5 +1,5 @@
 import tkinter
-from idozito_fv import feladatok, visszaszamlalo
+from idozito_fv import feladatok, visszaszamlalo, folamatjelzo
 
 ora_ikon = "C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\clock-icon.ico"
 hataridok = feladatok()
@@ -11,6 +11,7 @@ ablak.iconbitmap(ora_ikon)
 szoveg = tkinter.Label(ablak, text=hataridok[0][2])
 szoveg.pack()
 
+folamatjelzo(ablak, hataridok[0][1]).pack()
 visszaszamlalo(ablak, hataridok[0][1]).pack()
 
 print(hataridok)

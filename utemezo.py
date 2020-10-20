@@ -37,7 +37,7 @@ def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
         parancs += ["/ST", ido]
 
     # Feladat
-    feladat = "cmd /c python C:\\\\Users\\kgerg\\Documents\\GitHub\\Idozito\\" + feladat + ".py"
+    feladat = "C:\\\\Users\\kgerg\\AppData\\Local\\Programs\\Python\\Python38\\pythonw.exe C:\\\\Users\\kgerg\\Documents\\GitHub\\Idozito\\" + feladat + ".py"
     parancs += ["/TR", feladat]
 
     eredmeny = futtat(["schtasks"]+parancs)
