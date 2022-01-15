@@ -5,7 +5,7 @@ from math import floor, ceil
 def futtat(parancs):
     return subprocess.run(parancs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
+def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0, *, argumentumok):
     """
     Új feladat létrehozása.
     nev: feladat neve,
@@ -38,7 +38,7 @@ def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0):
 
     # Feladat
     feladat = "C:\\Users\\kgerg\\AppData\\Local\\Programs\\Python\\Python310\\pythonw.exe C:\\\\Users\\kgerg\\Documents\\GitHub\\Idozito\\" + feladat + ".py"
-    parancs += ["/TR", feladat]
+    parancs += ["/TR", feladat, *argumentumok]
 
     eredmeny = futtat(["schtasks"]+parancs)
     try:

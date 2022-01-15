@@ -1,4 +1,5 @@
 import subprocess
+import sys
 import random
 import time
 import tkinter
@@ -17,6 +18,14 @@ halaszt_ertekek = ("2 perc", "5 perc", "10 perc", "20 perc", "30 perc", "1 óra"
 nircmd = "nircmd.exe"
 bef = False
 
+max_ism_szam = 10
+ism_szam = 0
+if len(sys.argv) > 1:
+    try:
+        ism_szam = int(sys.argv[1])
+    except:
+        print("Nem egész argumentum")
+
 def keszenlet():
     subprocess.run(f"{nircmd} standby", check=False)
 
@@ -30,7 +39,10 @@ def kikapcs():
 def befejez():
     global bef
     bef = True
-    ablak.after_cancel(idolimit_id)
+    try:
+        ablak.after_cancel(idolimit_id)
+    except:
+        pass
     ablak.destroy()
 
 
@@ -70,13 +82,21 @@ def ido_ertelmezo(szoveg):
     raise ValueError(f"{szoveg} nem alakítható idővé.")
 
 def halaszt(*_):
+    global ism_szam
     ido = halaszt_lista.get().lower()
     try:
         ido = ido_ertelmezo(ido)*60 or 30
     except ValueError:
         ido = 30
-    ablak.after_cancel(idolimit_id)
+    try:
+        ablak.after_cancel(idolimit_id)
+    except:
+        pass
     ablak.destroy()
+
+    if ido <= 3000:
+        ism_szam = min(max_ism_szam, ism_szam + 1)
+        
     if ido <= 120:
         time.sleep(ido)
     else:
@@ -84,8 +104,21 @@ def halaszt(*_):
         if "figyelmezteto" in utemezett:
             torol("figyelmezteto")
         ido = tuple(time.localtime(time.time() + ido))[3:5]
-        letrehoz("figyelmezteto", "figyelmezteto-tevekenysegfigyelovel", "{:02}:{:02}".format(*ido))
+        letrehoz("figyelmezteto", "figyelmezteto-tevekenysegfigyelovel",
+                 "{:02}:{:02}".format(*ido), argumentumok=[ism_szam])
         befejez()
+
+def ablakmeret_kiszamolasa(min_szel, min_mag, max_szel, max_mag, max_x, max_y, arany):
+    szel = min_szel + (max_szel - min_szel) * arany
+    mag = min_mag + (max_mag - min_mag) * arany
+    x = max_x * (1 - arany)
+    y = max_y * (1 - arany)
+    return map(round, (szel, mag, x, y))
+
+def szin_kiszamolasa(kezd, bef, arany):
+    listava = lambda x: (x // 0x10000, x // 0x100 % 0x100, x % 0x100)
+    r, g, b = (round(x + (y - x) * arany) for x, y in zip(listava(kezd), listava(bef)))
+    return r * 0x10000 + g * 0x100 + b
 
 def figyelmezteto():
     global ablak, halaszt_lista, idolimit_id
@@ -98,13 +131,22 @@ def figyelmezteto():
     ablak_mag = 100
     hely_x = 420
     hely_y = 190
+    x = kepernyo_szel - hely_x
+    y = kepernyo_mag - hely_y
+
+    szel, mag, x, y = ablakmeret_kiszamolasa(ablak_szel, ablak_mag, kepernyo_szel, kepernyo_mag, x, y, ism_szam / max_ism_szam)
+
     # ablak.geometry("380x100+880+540")
-    ablak.geometry(f"{ablak_szel}x{ablak_mag}+{kepernyo_szel-hely_x}+{kepernyo_mag-hely_y}")
+    # ablak.geometry(f"{ablak_szel}x{ablak_mag}+{kepernyo_szel-hely_x}+{kepernyo_mag-hely_y}")
+    ablak.geometry(f"{szel}x{mag}+{x}+{y}")
     ablak.wm_attributes("-alpha", 0.95)
 
+    # hatterszin = round(0xF0F0F0 - (0xF0F0F0 - 0xA21414) * (ism_szam / max_ism_szam))
+    hatterszin = szin_kiszamolasa(0xF0F0F0, 0xA21414, ism_szam / max_ism_szam)
+    ablak.configure({"background": f"#{hatterszin:x}"})
 
     cimsor = tkinter.Frame(ablak)
-    cimsor.columnconfigure(index=0, minsize=340)
+    cimsor.columnconfigure(index=0, minsize=szel - 40)
 
     cim_szoveg = ttk.Label(cimsor, text=cim, font=(None, 10, 'bold'))
     cim_szoveg.grid(row=0, column=0, padx=10, pady=5, sticky="w")
@@ -126,8 +168,8 @@ def figyelmezteto():
     halaszt_szoveg = ttk.Label(ablak, text="Halasztás:")
     halaszt_szoveg.pack(side=tkinter.RIGHT)
 
-
-    idolimit_id = ablak.after(10000, halaszt)
+    if ism_szam != max_ism_szam:
+        idolimit_id = ablak.after(10000, halaszt)
     ablak.bell()
 
     ablak.mainloop()
