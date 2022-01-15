@@ -1,5 +1,6 @@
 import time
 from utemezo import letrehoz, listaz, torol
+import feladatok
 
 utemezett = [nev for nev, _ in listaz()]
 
@@ -9,6 +10,7 @@ if "figyelmezteto" in utemezett:
 ido = tuple(time.localtime(time.time() + 50*60))[3:5] # 50 perc múlva
 print(letrehoz("figyelmezteto", "figyelmezteto-tevekenysegfigyelovel", "{:02}:{:02}".format(*ido)))
 
+feladatok.osszes()
 
 # if "szunet" in utemezett:
 #     torol("szunet")

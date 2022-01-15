@@ -13,7 +13,7 @@ ora_ikon = "C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\clock-icon.ico"
 nyil_ikon = "C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\nyíl-ikon.png"
 tev_adatok = "C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\tevekenyseg-adatok.csv"
 hossz = 5
-halaszt_ertekek = ("1 perc", "2 perc", "5 perc", "10 perc", "30 perc", "1 óra", "2 óra")
+halaszt_ertekek = ("2 perc", "5 perc", "10 perc", "20 perc", "30 perc", "1 óra", "2 óra")
 nircmd = "nircmd.exe"
 bef = False
 
@@ -92,7 +92,14 @@ def figyelmezteto():
     ablak = tkinter.Tk()
     ablak.overrideredirect(True)
     ablak.wm_attributes("-topmost", True)
-    ablak.geometry("380x100+880+540")
+    kepernyo_szel = ablak.winfo_screenwidth()
+    kepernyo_mag = ablak.winfo_screenheight()
+    ablak_szel = 380
+    ablak_mag = 100
+    hely_x = 420
+    hely_y = 190
+    # ablak.geometry("380x100+880+540")
+    ablak.geometry(f"{ablak_szel}x{ablak_mag}+{kepernyo_szel-hely_x}+{kepernyo_mag-hely_y}")
     ablak.wm_attributes("-alpha", 0.95)
 
 
