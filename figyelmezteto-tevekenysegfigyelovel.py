@@ -94,9 +94,10 @@ def halaszt(*_):
         pass
     ablak.destroy()
 
-    if ido <= 3000:
+    if ido < 1200:
         ism_szam = min(max_ism_szam, ism_szam + 1)
-        
+    else:
+        ism_szam = 0
     if ido <= 120:
         time.sleep(ido)
     else:
