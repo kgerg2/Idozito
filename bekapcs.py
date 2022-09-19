@@ -7,7 +7,7 @@ utemezett = [nev for nev, _ in listaz()]
 if "figyelmezteto" in utemezett:
     print(torol("figyelmezteto"))
 
-ido = tuple(time.localtime(time.time() + 50*60))[3:5] # 50 perc múlva
+ido = tuple(time.localtime(time.time() + 20*60))[3:5] # 20 perc múlva
 print(letrehoz("figyelmezteto", "figyelmezteto-tevekenysegfigyelovel", "{:02}:{:02}".format(*ido)))
 
 feladatok.osszes()

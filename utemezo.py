@@ -1,6 +1,9 @@
+import shutil
 import subprocess
 from ast import literal_eval
-from math import floor, ceil
+from math import ceil, floor
+from pathlib import Path
+
 
 def futtat(parancs):
     return subprocess.run(parancs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -30,14 +33,14 @@ def letrehoz(nev, feladat, ido="", kezdes="ONCE", kesleltetes=0, *, argumentumok
         if kesleltetes > 0:
             perc = floor(min(kesleltetes, 9999))
             mp = ceil((kesleltetes-floor(kesleltetes)) * 60)
-            parancs += ["/DELAY", "{:02}:{:02}".format(perc, mp)]
+            parancs += ["/DELAY", f"{perc:04d}:{mp:02d}"]
 
     # Időpont
     if ido:
         parancs += ["/ST", ido]
 
     # Feladat
-    feladat = "C:\\Users\\kgerg\\AppData\\Local\\Programs\\Python\\Python310\\pythonw.exe C:\\\\Users\\kgerg\\Documents\\GitHub\\Idozito\\" + feladat + ".py"
+    feladat = f'{shutil.which("pythonw.exe")} {Path(feladat + ".py").absolute()}'
     parancs += ["/TR", feladat + "".join(f" {arg}" for arg in argumentumok)]
 
     eredmeny = futtat(["schtasks"]+parancs)

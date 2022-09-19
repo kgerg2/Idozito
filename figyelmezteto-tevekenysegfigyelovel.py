@@ -167,6 +167,7 @@ def figyelmezteto():
     halaszt_lista.bind("<<ComboboxSelected>>", halaszt)
 
     halaszt_szoveg = ttk.Label(ablak, text="Halasztás:")
+    halaszt_szoveg.configure({"background": f"#{hatterszin:x}"})
     halaszt_szoveg.pack(side=tkinter.RIGHT)
 
     if ism_szam != max_ism_szam:
