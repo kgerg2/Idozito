@@ -1,9 +1,14 @@
+from concurrent.futures import ProcessPoolExecutor
+from itertools import repeat
+import logging
 import subprocess
 import sys
 import random
 import time
 import tkinter
 from tkinter import ttk
+
+import screeninfo
 
 from utemezo import letrehoz, listaz, torol
 
@@ -17,6 +22,9 @@ hossz = 5
 halaszt_ertekek = ("2 perc", "5 perc", "10 perc", "20 perc", "30 perc", "1 óra", "2 óra")
 nircmd = "nircmd.exe"
 bef = False
+
+logging.basicConfig(format="%(asctime)s|%(levelname)s|%(filename)s:%(funcName)s(%(lineno)d)|%(message)s",
+                    filename="C:\\Users\\kgerg\\Documents\\GitHub\\Idozito\\logs.txt", level=logging.WARNING)
 
 max_ism_szam = 10
 ism_szam = 0
@@ -36,14 +44,15 @@ def kepernyo():
 def kikapcs():
     subprocess.run(f"{nircmd} exitwin poweroff", check=False)
 
-def befejez():
+def befejez(destroy=True):
     global bef
     bef = True
     try:
         ablak.after_cancel(idolimit_id)
     except:
         pass
-    ablak.destroy()
+    if destroy:
+        ablak.destroy()
 
 
 bef_lehetosegek = [("Képernyő kikapcsolása", kepernyo),
@@ -81,7 +90,7 @@ def ido_ertelmezo(szoveg):
 
     raise ValueError(f"{szoveg} nem alakítható idővé.")
 
-def halaszt(*_):
+def halaszt(halaszt_lista):
     global ism_szam
     ido = halaszt_lista.get().lower()
     try:
@@ -98,6 +107,8 @@ def halaszt(*_):
         ism_szam = min(max_ism_szam, ism_szam + 1)
     else:
         ism_szam = 0
+
+    print(f"halaszt: {ism_szam=}")
     if ido <= 120:
         time.sleep(ido)
     else:
@@ -105,9 +116,10 @@ def halaszt(*_):
         if "figyelmezteto" in utemezett:
             torol("figyelmezteto")
         ido = tuple(time.localtime(time.time() + ido))[3:5]
-        letrehoz("figyelmezteto", "figyelmezteto-tevekenysegfigyelovel",
+        eredm = letrehoz("figyelmezteto", r"C:\Users\kgerg\Documents\GitHub\Idozito\figyelmezteto-tevekenysegfigyelovel",
                  "{:02}:{:02}".format(*ido), argumentumok=[ism_szam])
-        befejez()
+        logging.info(eredm)
+        befejez(destroy=False)
 
 def ablakmeret_kiszamolasa(min_szel, min_mag, max_szel, max_mag, max_x, max_y, arany):
     szel = min_szel + (max_szel - min_szel) * arany
@@ -121,22 +133,28 @@ def szin_kiszamolasa(kezd, bef, arany):
     r, g, b = (round(x + (y - x) * arany) for x, y in zip(listava(kezd), listava(bef)))
     return r * 0x10000 + g * 0x100 + b
 
-def figyelmezteto():
-    global ablak, halaszt_lista, idolimit_id
-    ablak = tkinter.Tk()
+def figyelmezteto(monitor: screeninfo.Monitor, ismetles_szam):
+    global ablak, halaszt_lista, idolimit_id, ism_szam
+    ism_szam = ismetles_szam
+    ablak = tkinter.Tk(monitor.name)
     ablak.overrideredirect(True)
     ablak.wm_attributes("-topmost", True)
-    kepernyo_szel = ablak.winfo_screenwidth()
-    kepernyo_mag = ablak.winfo_screenheight()
+    kepernyo_szel = ablak.winfo_screenwidth() if monitor.is_primary else monitor.width
+    kepernyo_mag = ablak.winfo_screenheight() if monitor.is_primary else monitor.height
     ablak_szel = 380
     ablak_mag = 100
     hely_x = 420
     hely_y = 190
     x = kepernyo_szel - hely_x
     y = kepernyo_mag - hely_y
+    print(f"1: {ablak_szel}x{ablak_mag}+{x}+{y} ({monitor})")
 
     szel, mag, x, y = ablakmeret_kiszamolasa(ablak_szel, ablak_mag, kepernyo_szel, kepernyo_mag, x, y, ism_szam / max_ism_szam)
 
+    x += monitor.x
+    y += monitor.y
+
+    print(f"2: {szel}x{mag}+{x}+{y}")
     # ablak.geometry("380x100+880+540")
     # ablak.geometry(f"{ablak_szel}x{ablak_mag}+{kepernyo_szel-hely_x}+{kepernyo_mag-hely_y}")
     ablak.geometry(f"{szel}x{mag}+{x}+{y}")
@@ -153,7 +171,8 @@ def figyelmezteto():
     cim_szoveg.grid(row=0, column=0, padx=10, pady=5, sticky="w")
 
     nyil_kep = tkinter.PhotoImage(file=nyil_ikon)
-    nyil_gomb = tkinter.Button(cimsor, image=nyil_kep, borderwidth=0, command=halaszt)
+    halaszt_lista = ttk.Combobox(ablak, values=tuple(halaszt_ertekek))
+    nyil_gomb = tkinter.Button(cimsor, image=nyil_kep, borderwidth=0, command=lambda *_: halaszt(halaszt_lista))
     nyil_gomb.grid(row=0, column=1, sticky="e")
 
     cimsor.pack(anchor="n", fill="x")
@@ -161,23 +180,41 @@ def figyelmezteto():
     keszenlet_gomb = ttk.Button(ablak, text="Befejezés", command=befejez)
     keszenlet_gomb.pack(side=tkinter.LEFT, padx=10)
 
-    halaszt_lista = ttk.Combobox(ablak, values=tuple(halaszt_ertekek))
     halaszt_lista.pack(side=tkinter.RIGHT, padx=10)
-    halaszt_lista.bind("<Key-Return>", halaszt)
-    halaszt_lista.bind("<<ComboboxSelected>>", halaszt)
+    halaszt_lista.bind("<Key-Return>", lambda *_: halaszt(halaszt_lista))
+    halaszt_lista.bind("<<ComboboxSelected>>", lambda *_: halaszt(halaszt_lista))
 
     halaszt_szoveg = ttk.Label(ablak, text="Halasztás:")
     halaszt_szoveg.configure({"background": f"#{hatterszin:x}"})
     halaszt_szoveg.pack(side=tkinter.RIGHT)
 
     if ism_szam != max_ism_szam:
-        idolimit_id = ablak.after(10000, halaszt)
-    ablak.bell()
+        idolimit_id = ablak.after(10000, lambda *_: halaszt(halaszt_lista))
+    if monitor.is_primary:
+        ablak.bell()
 
     ablak.mainloop()
 
-while not bef:
-    figyelmezteto()
+    print(f"figyelmezteto: {ism_szam=}")
+
+    return ism_szam, bef
+
+if __name__ == "__main__":
+    while not bef:
+        # ThreadPoolExecutor().map(figyelmezteto, screeninfo.get_monitors())
+        # processes = [Process(target=figyelmezteto, args=[monitor]) for monitor in screeninfo.get_monitors()]
+        # for process in processes:
+        #     process.start()
+
+        # for process in processes:
+        #     process.join()
+        executor = ProcessPoolExecutor()
+        ism_szamok, bef_ek = zip(*executor.map(figyelmezteto, *zip(*zip(screeninfo.get_monitors(), repeat(ism_szam)))))
+        ism_szam = max(ism_szamok)
+        bef = any(bef_ek)
+        print(f"main: {ism_szam=}")
+        executor.shutdown(wait=True)
+    sys.exit()
 
 ###################################################################################################
 ####################################### Tevékenységfigyelő ########################################
@@ -210,11 +247,6 @@ def tev_rogzit():
                 ki.write("\n")
 
     ablak.quit()
-
-tev_beolvas()
-ablak = tkinter.Tk("Tevékenységfigyelő")
-
-tev_lista = []
 
 def kiegeszit(es):
     if not es.char:
@@ -270,34 +302,40 @@ def uj_tev(*_):
     tev_lista.append(tev_ablak)
     tev_ablak.pack()
 
-ido_ablak = tkinter.Frame(ablak)
+if __name__ == "__main__":
+    tev_beolvas()
+    ablak = tkinter.Tk("Tevékenységfigyelő")
 
-kezd_szoveg = ttk.Label(ido_ablak, text="Kezdő időpont: ")
-kezd_szoveg.grid(row=0, column=0)
+    tev_lista = []
 
-kezd_ido = tkinter.StringVar(value=kezd_ido)
-kezd_bev = ttk.Entry(ido_ablak, textvariable=kezd_ido)
-kezd_bev.grid(row=0, column=1)
+    ido_ablak = tkinter.Frame(ablak)
 
-bef_szoveg = ttk.Label(ido_ablak, text="Befejező időpont: ")
-bef_szoveg.grid(row=1, column=0)
+    kezd_szoveg = ttk.Label(ido_ablak, text="Kezdő időpont: ")
+    kezd_szoveg.grid(row=0, column=0)
 
-bef_ido = tkinter.StringVar(value=time.strftime("%Y-%m-%d %H:%M:%S"))
-bef_bev = ttk.Entry(ido_ablak, text=bef_ido)
-bef_bev.grid(row=1, column=1)
+    kezd_ido = tkinter.StringVar(value=kezd_ido)
+    kezd_bev = ttk.Entry(ido_ablak, textvariable=kezd_ido)
+    kezd_bev.grid(row=0, column=1)
 
-ido_ablak.pack()
+    bef_szoveg = ttk.Label(ido_ablak, text="Befejező időpont: ")
+    bef_szoveg.grid(row=1, column=0)
 
-uj_tev()
+    bef_ido = tkinter.StringVar(value=time.strftime("%Y-%m-%d %H:%M:%S"))
+    bef_bev = ttk.Entry(ido_ablak, text=bef_ido)
+    bef_bev.grid(row=1, column=1)
 
-bef_ablak = tkinter.Frame(ablak)
+    ido_ablak.pack()
 
-bef_gombok = []
+    uj_tev()
 
-for i, (felirat, fv) in enumerate(bef_lehetosegek):
-    bef_gombok.append(ttk.Button(bef_ablak, text=felirat, command=lambda f=fv: tev_rogzit() or f()))
-    bef_gombok[i].grid(row=0, column=i, padx=10)
+    bef_ablak = tkinter.Frame(ablak)
 
-bef_ablak.pack(side=tkinter.BOTTOM, pady=10)
+    bef_gombok = []
 
-ablak.mainloop()
+    for i, (felirat, fv) in enumerate(bef_lehetosegek):
+        bef_gombok.append(ttk.Button(bef_ablak, text=felirat, command=lambda f=fv: tev_rogzit() or f()))
+        bef_gombok[i].grid(row=0, column=i, padx=10)
+
+    bef_ablak.pack(side=tkinter.BOTTOM, pady=10)
+
+    ablak.mainloop()

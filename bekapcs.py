@@ -8,7 +8,7 @@ if "figyelmezteto" in utemezett:
     print(torol("figyelmezteto"))
 
 ido = tuple(time.localtime(time.time() + 20*60))[3:5] # 20 perc múlva
-print(letrehoz("figyelmezteto", "figyelmezteto-tevekenysegfigyelovel", "{:02}:{:02}".format(*ido)))
+print(letrehoz("figyelmezteto", r"C:\Users\kgerg\Documents\GitHub\Idozito\figyelmezteto-tevekenysegfigyelovel", "{:02}:{:02}".format(*ido)))
 
 feladatok.osszes()
 
